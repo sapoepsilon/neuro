@@ -474,8 +474,24 @@ export function forceHexColorsOnComputedStyles(container: HTMLElement): void {
  */
 export const processRechartsForPdfExport = (container: HTMLElement): void => {
   // Process all Recharts components
-  const rechartsComponents = container.querySelectorAll('.recharts-wrapper');
+  const rechartsComponents = container.querySelectorAll('.recharts-wrapper, [id*="recharts"]');
+  
+  if (rechartsComponents.length === 0) {
+    // If no Recharts components found, try to find SVG elements directly
+    const svgElements = container.querySelectorAll('svg');
+    svgElements.forEach(svg => {
+      processSvgForPdfExport(svg as SVGElement);
+    });
+    return;
+  }
+  
   rechartsComponents.forEach(component => {
+    // Process all SVG elements within the component
+    const svgElements = component.querySelectorAll('svg');
+    svgElements.forEach(svg => {
+      processSvgForPdfExport(svg as SVGElement);
+    });
+    
     // Process sectors (pie chart slices)
     const sectors = component.querySelectorAll('.recharts-sector');
     sectors.forEach((sector, index) => {
@@ -573,6 +589,122 @@ export const processRechartsForPdfExport = (container: HTMLElement): void => {
           
           stop.setAttribute('stop-color', color);
         });
+      });
+    });
+  });
+  
+  // Add a global style for Recharts elements
+  const rechartsStyle = document.createElement('style');
+  rechartsStyle.id = 'recharts-pdf-global-style';
+  rechartsStyle.textContent = `
+    .recharts-wrapper {
+      background-color: rgba(255, 255, 255, 0.4) !important;
+    }
+    .recharts-surface {
+      overflow: visible !important;
+    }
+    .recharts-sector {
+      fill: ${WES_ANDERSON_PALETTE.pastelBlue} !important;
+      stroke: ${WES_ANDERSON_PALETTE.text} !important;
+    }
+    .recharts-curve.recharts-area-area {
+      fill: ${WES_ANDERSON_PALETTE.pastelBlue} !important;
+      fill-opacity: 0.6 !important;
+    }
+    .recharts-curve.recharts-area-curve {
+      stroke: ${WES_ANDERSON_PALETTE.pastelBlue} !important;
+    }
+    .recharts-rectangle.recharts-bar-rectangle {
+      fill: ${WES_ANDERSON_PALETTE.pastelBlue} !important;
+      stroke: ${WES_ANDERSON_PALETTE.text} !important;
+    }
+    .recharts-rectangle.recharts-bar-rectangle[name="Secondary Metric"] {
+      fill: ${WES_ANDERSON_PALETTE.pastelPink} !important;
+    }
+    .recharts-text {
+      fill: ${WES_ANDERSON_PALETTE.text} !important;
+      font-family: Inter, system-ui, sans-serif !important;
+    }
+    .recharts-cartesian-axis-line, .recharts-cartesian-axis-tick-line {
+      stroke: ${WES_ANDERSON_PALETTE.text} !important;
+    }
+    .recharts-legend-item-text {
+      color: ${WES_ANDERSON_PALETTE.text} !important;
+    }
+  `;
+  
+  // Only add the style if it doesn't already exist
+  if (!document.getElementById('recharts-pdf-global-style')) {
+    document.head.appendChild(rechartsStyle);
+  }
+};
+
+/**
+ * Process an SVG element for PDF export
+ * This is a helper function used by processRechartsForPdfExport
+ */
+export const processSvgForPdfExport = (svg: SVGElement): void => {
+  // Force explicit styling on SVG
+  svg.setAttribute('style', 'overflow: visible; width: 100%; height: 100%;');
+  
+  // Fix text elements
+  const textElements = svg.querySelectorAll('text');
+  textElements.forEach(text => {
+    text.setAttribute('fill', WES_ANDERSON_PALETTE.text);
+    text.setAttribute('font-family', 'Inter, system-ui, sans-serif');
+  });
+  
+  // Fix path elements
+  const pathElements = svg.querySelectorAll('path');
+  pathElements.forEach(path => {
+    const currentFill = path.getAttribute('fill');
+    if (currentFill && (currentFill.includes('url') || currentFill.includes('oklch'))) {
+      path.setAttribute('fill', WES_ANDERSON_PALETTE.pastelBlue);
+    }
+    
+    const currentStroke = path.getAttribute('stroke');
+    if (currentStroke && (currentStroke.includes('url') || currentStroke.includes('oklch'))) {
+      path.setAttribute('stroke', WES_ANDERSON_PALETTE.text);
+    }
+  });
+  
+  // Fix rect elements
+  const rectElements = svg.querySelectorAll('rect');
+  rectElements.forEach(rect => {
+    const currentFill = rect.getAttribute('fill');
+    if (currentFill && (currentFill.includes('url') || currentFill.includes('oklch'))) {
+      rect.setAttribute('fill', WES_ANDERSON_PALETTE.pastelBlue);
+    }
+    
+    const currentStroke = rect.getAttribute('stroke');
+    if (currentStroke && (currentStroke.includes('url') || currentStroke.includes('oklch'))) {
+      rect.setAttribute('stroke', WES_ANDERSON_PALETTE.text);
+    }
+  });
+  
+  // Fix circle elements
+  const circleElements = svg.querySelectorAll('circle');
+  circleElements.forEach(circle => {
+    const currentFill = circle.getAttribute('fill');
+    if (currentFill && (currentFill.includes('url') || currentFill.includes('oklch'))) {
+      circle.setAttribute('fill', WES_ANDERSON_PALETTE.pastelBlue);
+    }
+    
+    const currentStroke = circle.getAttribute('stroke');
+    if (currentStroke && (currentStroke.includes('url') || currentStroke.includes('oklch'))) {
+      circle.setAttribute('stroke', WES_ANDERSON_PALETTE.text);
+    }
+  });
+  
+  // Fix gradient definitions
+  const defs = svg.querySelectorAll('defs');
+  defs.forEach(def => {
+    const gradients = def.querySelectorAll('linearGradient, radialGradient');
+    gradients.forEach(gradient => {
+      // Replace gradient stops with solid colors
+      const stops = gradient.querySelectorAll('stop');
+      stops.forEach(stop => {
+        stop.setAttribute('stop-color', WES_ANDERSON_PALETTE.pastelBlue);
       });
     });
   });

@@ -1,4 +1,5 @@
 import { geminiClient } from "./gemini-client";
+import { processMarketAnalysisContent } from "./market-analysis/content-processing";
 
 // Define types for grounding metadata
 interface GroundingMetadata {
@@ -43,9 +44,15 @@ export interface MarketAnalysisResult {
     };
   }>;
   chartData?: {
-    pieChart?: Array<{ name: string; value: number }>;
-    areaChart?: Array<{ name: string; value: number }>;
-    barChart?: Array<{ name: string; value: number; secondaryValue?: number }>;
+    pieChart?: Array<{ name: string; value: number; unit?: string }>;
+    areaChart?: Array<{ name: string; value: number; unit?: string }>;
+    barChart?: Array<{
+      name: string;
+      value: number;
+      unit?: string;
+      secondaryValue?: number;
+      secondaryUnit?: string;
+    }>;
   };
   summary?: string;
 }
@@ -57,12 +64,24 @@ export const chartDataSchema = {
     pieChart: {
       type: "ARRAY",
       description:
-        "Pie chart data showing market share distribution among key competitors or market segments",
+        "Market share distribution data using actual percentages from reliable sources. Values must sum to 100%.",
       items: {
         type: "OBJECT",
         properties: {
-          name: { type: "STRING" },
-          value: { type: "NUMBER" },
+          name: {
+            type: "STRING",
+            description:
+              "Company or segment name (e.g., 'Microsoft', 'Cloud Services', 'Others')",
+          },
+          value: {
+            type: "NUMBER",
+            description: "Market share percentage (0-100)",
+          },
+          unit: {
+            type: "STRING",
+            description: "Unit for the value (e.g., '%')",
+            optional: true,
+          },
         },
         required: ["name", "value"],
       },
@@ -72,12 +91,23 @@ export const chartDataSchema = {
     areaChart: {
       type: "ARRAY",
       description:
-        "Area chart data showing market growth trends over time (past 5 years)",
+        "Historical market size data from 2019-2024 using actual values in billions USD",
       items: {
         type: "OBJECT",
         properties: {
-          name: { type: "STRING" },
-          value: { type: "NUMBER" },
+          name: {
+            type: "STRING",
+            description: "Year in YYYY format",
+          },
+          value: {
+            type: "NUMBER",
+            description: "Market size in billions USD",
+          },
+          unit: {
+            type: "STRING",
+            description: "Unit for the value (e.g., 'B USD', 'M users')",
+            optional: true,
+          },
         },
         required: ["name", "value"],
       },
@@ -87,13 +117,34 @@ export const chartDataSchema = {
     barChart: {
       type: "ARRAY",
       description:
-        "Bar chart data comparing key metrics across competitors or market segments",
+        "Comparison of actual metrics (revenue, users, etc.) across companies or segments. Do not include project values.",
       items: {
         type: "OBJECT",
         properties: {
-          name: { type: "STRING" },
-          value: { type: "NUMBER" },
-          secondaryValue: { type: "NUMBER", optional: true },
+          name: {
+            type: "STRING",
+            description:
+              "Metric and company/segment (e.g., 'Revenue - Microsoft', 'Users - Cloud Services')",
+          },
+          value: {
+            type: "NUMBER",
+            description: "Primary metric value",
+          },
+          unit: {
+            type: "STRING",
+            description: "Unit for the value (e.g., 'B USD', 'M users', '%')",
+            optional: true,
+          },
+          secondaryValue: {
+            type: "NUMBER",
+            description: "Optional secondary metric value",
+            optional: true,
+          },
+          secondaryUnit: {
+            type: "STRING",
+            description: "Unit for the secondary value",
+            optional: true,
+          },
         },
         required: ["name", "value"],
       },
@@ -148,6 +199,9 @@ export async function generateMarketAnalysis(
       .replace(/```\n?/g, "") // Remove closing code block
       .trim();
 
+    // Process the content to remove meta-explanations and format properly
+    content = processMarketAnalysisContent(content, { format: "html" });
+
     // Check if we have grounding metadata
     const candidates = result.response.candidates || [];
     const firstCandidate = candidates[0];
@@ -179,16 +233,31 @@ export async function generateMarketAnalysis(
 
     // Now generate chart data using structured output
     const chartDataPrompt = `
-      Based on the following project description, generate chart data for market analysis visualization:
+      Based on the following project description and the latest market data from 2024, generate realistic chart data for market analysis visualization.
+      Use these guidelines for data accuracy:
+      
+      1. Market Share Distribution (pieChart):
+         - Use actual market share percentages of major companies in the relevant sector
+         - Include "Others" category to account for smaller players
+         - Values should sum to 100%
+         - Label format: "Company Name" or "Segment Name"
+      
+      2. Market Growth Trends (areaChart):
+         - Show market size in billions USD from 2019 to 2024
+         - Use actual historical data where available
+         - Include proper units in labels (e.g., "$390.94B" instead of just "390.94")
+         - Label format: "YYYY" for years
+      
+      3. Key Metrics Comparison (barChart):
+         - Compare actual metrics like revenue, user base, or market penetration
+         - Use the latest available data from 2024
+         - Include proper units in labels (e.g., "$", "M users", "%")
+         - Do not include hypothetical values for the project
+         - Label format: "Metric - Company/Segment"
       
       Project Description: ${projectDescription}
       
-      Generate realistic and relevant data for:
-      1. Market share distribution among key competitors or market segments (pieChart)
-      2. Market growth trends over time for the past 5 years (areaChart)
-      3. Comparison of key metrics between the project and competitors (barChart)
-      
-      The data should be realistic and reflect actual market conditions as much as possible.
+      Note: Focus on providing accurate, real-world data from reliable sources. Do not include speculative values for the project itself.
     `;
 
     // Generate structured chart data
@@ -202,17 +271,17 @@ export async function generateMarketAnalysis(
     try {
       // Get the raw text response
       const responseText = chartDataResult.response.text();
-      
+
       // Try to extract JSON from the response
       // First, look for JSON within code blocks if present
       let jsonText = responseText;
-      
+
       // Remove any markdown code block indicators if present
       jsonText = jsonText.replace(/```json\s*/g, "").replace(/```\s*$/g, "");
-      
+
       // Trim any whitespace
       jsonText = jsonText.trim();
-      
+
       // Parse the JSON
       chartData = JSON.parse(jsonText);
       console.log("Generated chart data:", chartData);
@@ -224,20 +293,20 @@ export async function generateMarketAnalysis(
           { name: "Your Product", value: 35 },
           { name: "Competitor A", value: 25 },
           { name: "Competitor B", value: 20 },
-          { name: "Others", value: 20 }
+          { name: "Others", value: 20 },
         ],
         areaChart: [
           { name: "2020", value: 100 },
           { name: "2021", value: 120 },
           { name: "2022", value: 150 },
           { name: "2023", value: 200 },
-          { name: "2024", value: 250 }
+          { name: "2024", value: 250 },
         ],
         barChart: [
           { name: "Feature Richness", value: 8, secondaryValue: 6 },
           { name: "User Experience", value: 9, secondaryValue: 7 },
-          { name: "Performance", value: 7, secondaryValue: 8 }
-        ]
+          { name: "Performance", value: 7, secondaryValue: 8 },
+        ],
       };
     }
 
@@ -345,12 +414,12 @@ export async function generateMarketAnalysisSummary(
 
     // Extract the summary content
     let summary = result.response.text();
-    
+
     // Remove any markdown formatting
     summary = summary
       .replace(/^#+ /gm, "") // Remove headings
-      .replace(/\*\*/g, "")   // Remove bold
-      .replace(/\*/g, "")     // Remove italics
+      .replace(/\*\*/g, "") // Remove bold
+      .replace(/\*/g, "") // Remove italics
       .trim();
 
     return summary;
@@ -434,6 +503,9 @@ export async function generateMarketAnalysisWithDynamicRetrieval(
       .replace(/```\n?/g, "") // Remove closing code block
       .trim();
 
+    // Process the content to remove meta-explanations and format properly
+    content = processMarketAnalysisContent(content, { format: "html" });
+
     // Check if we have grounding metadata
     const candidates = result.response.candidates || [];
     const firstCandidate = candidates[0];
@@ -465,16 +537,31 @@ export async function generateMarketAnalysisWithDynamicRetrieval(
 
     // Now generate chart data using structured output
     const chartDataPrompt = `
-      Based on the following project description, generate chart data for market analysis visualization:
+      Based on the following project description and the latest market data from 2024, generate realistic chart data for market analysis visualization.
+      Use these guidelines for data accuracy:
+      
+      1. Market Share Distribution (pieChart):
+         - Use actual market share percentages of major companies in the relevant sector
+         - Include "Others" category to account for smaller players
+         - Values should sum to 100%
+         - Label format: "Company Name" or "Segment Name"
+      
+      2. Market Growth Trends (areaChart):
+         - Show market size in billions USD from 2019 to 2024
+         - Use actual historical data where available
+         - Include proper units in labels (e.g., "$390.94B" instead of just "390.94")
+         - Label format: "YYYY" for years
+      
+      3. Key Metrics Comparison (barChart):
+         - Compare actual metrics like revenue, user base, or market penetration
+         - Use the latest available data from 2024
+         - Include proper units in labels (e.g., "$", "M users", "%")
+         - Do not include hypothetical values for the project
+         - Label format: "Metric - Company/Segment"
       
       Project Description: ${projectDescription}
       
-      Generate realistic and relevant data for:
-      1. Market share distribution among key competitors or market segments (pieChart)
-      2. Market growth trends over time for the past 5 years (areaChart)
-      3. Comparison of key metrics between the project and competitors (barChart)
-      
-      The data should be realistic and reflect actual market conditions as much as possible.
+      Note: Focus on providing accurate, real-world data from reliable sources. Do not include speculative values for the project itself.
     `;
 
     // Generate structured chart data
@@ -488,17 +575,17 @@ export async function generateMarketAnalysisWithDynamicRetrieval(
     try {
       // Get the raw text response
       const responseText = chartDataResult.response.text();
-      
+
       // Try to extract JSON from the response
       // First, look for JSON within code blocks if present
       let jsonText = responseText;
-      
+
       // Remove any markdown code block indicators if present
       jsonText = jsonText.replace(/```json\s*/g, "").replace(/```\s*$/g, "");
-      
+
       // Trim any whitespace
       jsonText = jsonText.trim();
-      
+
       // Parse the JSON
       chartData = JSON.parse(jsonText);
       console.log("Generated chart data:", chartData);
@@ -510,20 +597,20 @@ export async function generateMarketAnalysisWithDynamicRetrieval(
           { name: "Your Product", value: 35 },
           { name: "Competitor A", value: 25 },
           { name: "Competitor B", value: 20 },
-          { name: "Others", value: 20 }
+          { name: "Others", value: 20 },
         ],
         areaChart: [
           { name: "2020", value: 100 },
           { name: "2021", value: 120 },
           { name: "2022", value: 150 },
           { name: "2023", value: 200 },
-          { name: "2024", value: 250 }
+          { name: "2024", value: 250 },
         ],
         barChart: [
           { name: "Feature Richness", value: 8, secondaryValue: 6 },
           { name: "User Experience", value: 9, secondaryValue: 7 },
-          { name: "Performance", value: 7, secondaryValue: 8 }
-        ]
+          { name: "Performance", value: 7, secondaryValue: 8 },
+        ],
       };
     }
 
