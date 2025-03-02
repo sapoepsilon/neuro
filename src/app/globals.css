@@ -1,24 +1,271 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Wes Anderson inspired color palette */
+  --pastel-pink: #F8D0C8;
+  --pastel-blue: #A4CAED;
+  --pastel-blue-dark: #5A8BBF; /* Much darker shade for better contrast */
+  --pastel-yellow: #F5E3A4;
+  --pastel-green: #C3DBC5;
+  --pastel-red: #E8B4B8;
+  --pastel-red-dark: #C7868B; /* Darker red for better contrast */
+  --pastel-beige: #F2E8DC;
+  --pastel-lavender: #D8C8E3;
+  --pastel-mint: #C2E6D6;
+  
+  /* Gradient colors (reserved for special occasions) */
+  --ocean-blue: #2563eb;
+  --emerald-green: #10b981;
+  --sky-blue: #0ea5e9;
+  --lime-green: #84cc16;
+
+  /* Base theme colors using Wes Anderson palette */
+  --card: oklch(0.98 0.02 80);  /* Light beige */
+  --card-foreground: oklch(0.3 0.02 280);  /* Dark lavender */
+  --popover: oklch(0.98 0.02 80);  /* Light beige */
+  --popover-foreground: oklch(0.3 0.02 280);  /* Dark lavender */
+  --primary: oklch(0.7 0.1 250);  /* Muted blue */
+  --primary-foreground: oklch(0.98 0.02 80);  /* Light beige */
+  --secondary: oklch(0.75 0.1 140);  /* Muted green */
+  --secondary-foreground: oklch(0.3 0.02 280);  /* Dark lavender */
+  --muted: oklch(0.9 0.03 80);  /* Very light beige */
+  --muted-foreground: oklch(0.5 0.05 280);  /* Medium lavender */
+  --accent: oklch(0.8 0.1 40);  /* Muted yellow */
+  --accent-foreground: oklch(0.3 0.02 280);  /* Dark lavender */
+  --destructive: oklch(0.7 0.15 25);  /* Muted red */
+  --destructive-foreground: oklch(0.98 0.02 80);  /* Light beige */
+  --border: oklch(0.85 0.03 80);  /* Light beige border */
+  --input: oklch(0.85 0.03 80);  /* Light beige input */
+  --ring: oklch(0.7 0.1 250);  /* Muted blue ring */
+  
+  /* Chart colors */
+  --chart-1: oklch(0.7 0.1 250);  /* Muted blue */
+  --chart-2: oklch(0.75 0.1 140);  /* Muted green */
+  --chart-3: oklch(0.8 0.1 40);   /* Muted yellow */
+  --chart-4: oklch(0.7 0.15 25);  /* Muted red */
+  --chart-5: oklch(0.7 0.1 320);  /* Muted pink */
+  
+  --radius: 0.625rem;
+  --sidebar: oklch(0.95 0.02 80);  /* Very light beige */
+  --sidebar-foreground: oklch(0.3 0.02 280);  /* Dark lavender */
+  --sidebar-primary: oklch(0.7 0.1 250);  /* Muted blue */
+  --sidebar-primary-foreground: oklch(0.98 0.02 80);  /* Light beige */
+  --sidebar-accent: oklch(0.9 0.03 80);  /* Very light beige */
+  --sidebar-accent-foreground: oklch(0.3 0.02 280);  /* Dark lavender */
+  --sidebar-border: oklch(0.85 0.03 80);  /* Light beige border */
+  --sidebar-ring: oklch(0.7 0.1 250);  /* Muted blue ring */
+  --background: oklch(1 0 0);  /* White */
+  --foreground: oklch(0.2 0.02 280);  /* Very dark lavender */
+  
+  /* High contrast colors for buttons */
+  --btn-primary: #3A6EA5;
+  --btn-primary-hover: #2A5A8F;
+  --btn-danger: #B54B4B;
+  --btn-danger-hover: #973E3E;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+.dark {
+  /* Dark mode with Wes Anderson inspired colors */
+  --background: oklch(0.2 0.02 280);  /* Very dark lavender */
+  --foreground: oklch(0.95 0.02 80);  /* Very light beige */
+  --card: oklch(0.25 0.03 280);  /* Dark lavender */
+  --card-foreground: oklch(0.95 0.02 80);  /* Very light beige */
+  --popover: oklch(0.25 0.03 280);  /* Dark lavender */
+  --popover-foreground: oklch(0.95 0.02 80);  /* Very light beige */
+  --primary: oklch(0.7 0.1 250);  /* Muted blue */
+  --primary-foreground: oklch(0.25 0.03 280);  /* Dark lavender */
+  --secondary: oklch(0.35 0.05 140);  /* Dark muted green */
+  --secondary-foreground: oklch(0.95 0.02 80);  /* Very light beige */
+  --muted: oklch(0.3 0.03 280);  /* Darker lavender */
+  --muted-foreground: oklch(0.8 0.05 80);  /* Light beige */
+  --accent: oklch(0.35 0.05 40);  /* Dark muted yellow */
+  --accent-foreground: oklch(0.95 0.02 80);  /* Very light beige */
+  --destructive: oklch(0.5 0.1 25);  /* Darker muted red */
+  --destructive-foreground: oklch(0.95 0.02 80);  /* Very light beige */
+  --border: oklch(0.35 0.03 280);  /* Dark lavender border */
+  --input: oklch(0.35 0.03 280);  /* Dark lavender input */
+  --ring: oklch(0.7 0.1 250);  /* Muted blue ring */
+  
+  /* Chart colors */
+  --chart-1: oklch(0.7 0.1 250);  /* Muted blue */
+  --chart-2: oklch(0.65 0.1 140);  /* Slightly darker muted green */
+  --chart-3: oklch(0.7 0.1 40);   /* Slightly darker muted yellow */
+  --chart-4: oklch(0.65 0.15 25);  /* Slightly darker muted red */
+  --chart-5: oklch(0.65 0.1 320);  /* Slightly darker muted pink */
+  
+  --sidebar: oklch(0.25 0.03 280);  /* Dark lavender */
+  --sidebar-foreground: oklch(0.95 0.02 80);  /* Very light beige */
+  --sidebar-primary: oklch(0.7 0.1 250);  /* Muted blue */
+  --sidebar-primary-foreground: oklch(0.95 0.02 80);  /* Very light beige */
+  --sidebar-accent: oklch(0.3 0.03 280);  /* Darker lavender */
+  --sidebar-accent-foreground: oklch(0.95 0.02 80);  /* Very light beige */
+  --sidebar-border: oklch(0.35 0.03 280);  /* Dark lavender border */
+  --sidebar-ring: oklch(0.7 0.1 250);  /* Muted blue ring */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+/* Gradient backgrounds - RESERVED FOR SPECIAL OCCASIONS ONLY */
+.bg-primary-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--ocean-blue) 0%,
+    var(--emerald-green) 100%
+  );
+}
+
+.bg-secondary-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--sky-blue) 0%,
+    var(--lime-green) 100%
+  );
+}
+
+.bg-neutral-gradient {
+  background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+}
+
+/* Gradient text - RESERVED FOR SPECIAL OCCASIONS ONLY */
+.bg-primary-gradient.bg-clip-text {
+  background: linear-gradient(
+    135deg,
+    var(--ocean-blue) 0%,
+    var(--emerald-green) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Wes Anderson inspired backgrounds */
+.bg-pastel-pink {
+  background-color: var(--pastel-pink);
+}
+
+.bg-pastel-blue {
+  background-color: var(--pastel-blue);
+}
+
+.bg-pastel-yellow {
+  background-color: var(--pastel-yellow);
+}
+
+.bg-pastel-green {
+  background-color: var(--pastel-green);
+}
+
+.bg-pastel-red {
+  background-color: var(--pastel-red);
+}
+
+.bg-pastel-beige {
+  background-color: var(--pastel-beige);
+}
+
+.bg-pastel-lavender {
+  background-color: var(--pastel-lavender);
+}
+
+.bg-pastel-mint {
+  background-color: var(--pastel-mint);
+}
+
+/* Noise texture for buttons and elements */
+.noise-texture {
+  position: relative;
+  overflow: hidden;
+}
+
+.noise-texture::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.2; /* Increased opacity */
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay; /* Added blend mode for better visibility */
+  z-index: 1;
+}
+
+.noise-texture > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* High contrast button styles */
+.btn-high-contrast {
+  background-color: var(--btn-primary);
+  color: white;
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.btn-high-contrast:hover {
+  background-color: var(--btn-primary-hover);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.btn-high-contrast:active {
+  transform: translateY(1px);
+}
+
+.btn-danger {
+  background-color: var(--btn-danger);
+}
+
+.btn-danger:hover {
+  background-color: var(--btn-danger-hover);
 }
