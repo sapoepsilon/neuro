@@ -12,30 +12,21 @@
 
 ## Color System
 
-### Primary Colors
+### Text Colors
 
-- **Primary Button**: `#4A69DD` - Main action color
-  - Hover: `#2A5A8F`
-- **Pastel Blue**: `#A4CAED` - Primary brand color
-- **Pastel Blue Dark**: `#5A8BBF` - For better contrast
-- **Pastel Green**: `#C3DBC5` - Secondary color
-- **Pastel Beige**: `#F2E8DC` - Background color
-- **White**: `#FFFFFF` - Text on dark backgrounds
+We use a minimalist white-based text system for maximum readability:
 
-### Secondary Colors
+- Primary Text: `text-white` (100% opacity)
+- Secondary Text: `text-white/90` (90% opacity)
+- Tertiary Text: `text-white/70` (70% opacity)
+- Placeholder Text: `text-white/60` (60% opacity)
 
-- **Pastel Pink**: `#F8D0C8`
-- **Pastel Yellow**: `#F5E3A4`
-- **Pastel Lavender**: `#D8C8E3`
-- **Pastel Red**: `#E8B4B8`
-- **Pastel Mint**: `#C2E6D6`
+### UI Colors
 
-### Background Gradients
-
-- **Wes Anderson Gradient**:
-  ```css
-  linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 50%, #45B7D1 100%)
-  ```
+- Background Gradient: `var(--gradient-wes)`
+- Glass Effect: `bg-white/60` with `backdrop-blur-[10px]`
+- Button Primary: `bg-primary`
+- Button Hover: `bg-primary-hover`
 
 ## Button System
 
@@ -99,11 +90,31 @@
 
 ## Typography
 
-### Button Text
+### Primary Font
 
-- Font Weight: Semi Bold (600)
-- Color: White (on primary buttons)
-- Text Transform: None (preserve case)
+**Inter** - A clean, modern sans-serif that is highly readable on screens
+
+```css
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+```
+
+### Font Weights
+
+- **Regular (400)** - Main body text
+- **Medium (500)** - Subheadings and emphasized text
+- **Semi-Bold (600)** - Section headings
+- **Bold (700)** - Main headings and CTAs
+
+### Type Scale
+
+- **Display** `3.5rem/56px` - Hero headlines
+- **H1** `2.5rem/40px` - Main headlines
+- **H2** `2rem/32px` - Section headlines
+- **H3** `1.5rem/24px` - Subsection headlines
+- **H4** `1.25rem/20px` - Card headlines
+- **Body** `1rem/16px` - Regular text
+- **Small** `0.875rem/14px` - Secondary information
+- **Tiny** `0.75rem/12px` - Captions and meta text
 
 ## Best Practices
 
@@ -144,30 +155,36 @@
 - **Heading Bottom Margin**: `1rem` (16px)
 - **Paragraph Bottom Margin**: `1.25rem` (20px)
 
-## Typography
+## Animation
 
-### Primary Font
+### Transitions
 
-**Inter** - A clean, modern sans-serif that is highly readable on screens
+- Default: `transition-all duration-300`
+- Quick: `transition-all duration-200`
+- Slow: `transition-all duration-500`
+
+### Hover Effects
+
+- Scale: `hover:scale-105`
+- Shadow: `hover:shadow-xl`
+- Opacity: `hover:opacity-90`
+
+## Special Effects
+
+### Noise Texture
+
+Applied to buttons and selected UI elements for a vintage film-like aesthetic:
 
 ```css
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+.noise-texture {
+  @apply relative overflow-hidden;
+}
 ```
 
-### Font Weights
+### Gradient Background
 
-- **Regular (400)** - Main body text
-- **Medium (500)** - Subheadings and emphasized text
-- **Semi-Bold (600)** - Section headings
-- **Bold (700)** - Main headings and CTAs
+The signature Wes Anderson-inspired gradient:
 
-### Type Scale
-
-- **Display** `3.5rem/56px` - Hero headlines
-- **H1** `2.5rem/40px` - Main headlines
-- **H2** `2rem/32px` - Section headlines
-- **H3** `1.5rem/24px` - Subsection headlines
-- **H4** `1.25rem/20px` - Card headlines
-- **Body** `1rem/16px` - Regular text
-- **Small** `0.875rem/14px` - Secondary information
-- **Tiny** `0.75rem/12px` - Captions and meta text
+```css
+--gradient-wes: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 50%, #45b7d1 100%);
+```

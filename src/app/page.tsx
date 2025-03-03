@@ -4,30 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { Sparkles, Loader2 } from "lucide-react";
-
-interface GenerateResponse {
-  content: string;
-  model: string;
-  usage?: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
-  };
-}
-
-interface ErrorResponse {
-  error: {
-    message: string;
-    code: string;
-    details?: Record<string, unknown>;
-  };
-}
+import { ErrorResponse, SuccessResponse } from "./api/generate/route";
+import { ResultsCard } from "@/components/ResultsCard";
 
 export default function Home() {
   const [mvpIdea, setMvpIdea] = useState("");
   const [isHovered, setIsHovered] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<GenerateResponse | null>(null);
+  const [result, setResult] = useState<SuccessResponse | null>(null);
   const [error, setError] = useState<ErrorResponse | null>(null);
 
   const handleGenerateRoadmap = async (e: React.FormEvent) => {
@@ -45,12 +29,7 @@ export default function Home() {
         body: JSON.stringify({
           templateId: "mission-statement",
           input: {
-            companyName: "Startup",
-            industry: "technology",
-            mainActivity: mvpIdea,
-            targetAudience: "users and businesses",
-            values: "innovation, efficiency, user-centric",
-            uniqueApproach: "leveraging AI and automation",
+            productIdea: mvpIdea,
           },
         }),
       });
@@ -62,7 +41,7 @@ export default function Home() {
         return;
       }
 
-      setResult(data as GenerateResponse);
+      setResult(data as SuccessResponse);
     } catch (err: unknown) {
       setError({
         error: {
@@ -79,11 +58,13 @@ export default function Home() {
   return (
     <main className="min-h-screen relative overflow-hidden noise-texture">
       <div className="w-full min-h-screen flex flex-col items-center justify-center px-6 py-12">
-        <div className="w-full max-w-2xl">
+        <div className="w-full max-w-2xl justify-center items-center">
           {/* Hero Card */}
-          <div className="glass-card w-full p-8 mb-10">
+          <div className="glass-card p-8 mb-10 backdrop-blur-[10px] bg-white/60 border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1)] rounded-2xl">
             <div className="text-center mb-8">
-              <h1 className="text-[3.5rem] leading-[1.2] font-bold mb-4 text-white">
+              <h1
+                className="text-[3.5rem] leading-[1.2] font-bold mb-4 text-white"
+              >
                 Neuro MVP
               </h1>
               <p className="text-lg text-white/90">
@@ -138,39 +119,28 @@ export default function Home() {
                 )}
               </Button>
             </form>
-
-            {/* Results Section */}
-            {result && (
-              <div className="mt-8 glass-card p-6 rounded-xl border border-white/20">
-                <h2 className="text-xl font-semibold text-white mb-4">
-                  Your Mission Statement & Roadmap
-                </h2>
-                <div className="prose prose-invert">
-                  <div className="whitespace-pre-wrap text-white/90">
-                    {result.content}
-                  </div>
-                </div>
-                {result.usage && (
-                  <div className="mt-4 text-sm text-white/60">
-                    Model: {result.model}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Error Display */}
-            {error && (
-              <div className="mt-8 glass-card p-6 rounded-xl border border-red-400/50 bg-red-500/10">
-                <p className="text-red-200">{error.error.message}</p>
-                {error.error.code && (
-                  <p className="text-sm text-red-300/70 mt-2">
-                    Error code: {error.error.code}
-                  </p>
-                )}
-              </div>
-            )}
           </div>
         </div>
+        {/* Results Section */}
+        {result && (
+          <ResultsCard
+            content={result.content}
+            model={result.model}
+            usage={result.usage}
+          />
+        )}
+
+        {/* Error Display */}
+        {error && (
+          <div className="mt-8 glass-card p-6 rounded-xl border border-red-400/50 bg-red-500/10">
+            <p className="text-white/90">{error.error.message}</p>
+            {error.error.code && (
+              <p className="text-sm mt-2 text-white/70">
+                Error code: {error.error.code}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </main>
   );
